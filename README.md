@@ -3,7 +3,7 @@
 A simple vim navigation game designed to help with learning the basics of vim navigation.
 
 ## Installation
-Please fork the system from git-hub.
+Please clone the system from git-hub.
 
 ## Contributing
 PR's welcome!
