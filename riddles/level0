@@ -1,0 +1,16 @@
+q: Which key lets you navigate left in the maze?
+a: h
+q: Which key lets you navigate right in the maze?
+a: l
+q: Which key lets you navigate up in the maze?
+a: j
+q: Which key lets you navigate down in the maze?
+a: k
+q: Which key jumps to the beginning of the next word (not blank-delimited)?
+a: w
+q: Which key jumps to the beginning of the next blank-delimited word?
+a: W
+q: Which key jumps to the end of the next word (not blank-delimited)?
+a: e
+q: Which key jumps to the end of the next blank-delimited word?
+a: E

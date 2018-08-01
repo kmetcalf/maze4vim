@@ -1,0 +1,31 @@
+Levels
+
+Each level for this game is stored in the "mazes/" folder off the main folder.  New mazes can be easily added - just add one with a new level number.
+
+Filenames:
+Example: level0
+Meaning: Level number 0.  If your config file specifies a level, you'll start at that level.
+
+Maze File Format:
+Example:
+01000
+01110
+00100
+01111
+00000
+start:0,1
+end:3,4
+
+A maze file consists of rows and columns that map characters to maze features.
+0: A wall in the maze.
+1: An open pathway in the maze.
+t: A trap.
+m: A monster.
+
+Required parameters:
+start: row,column - the row and column where the user will enter this level of the maze.
+end: row,column - the row and column where the user must get to to leave this level
+
+Optional parameters:
+trap_level: x - By default, traps will be the same level as the maze.  Provide a different level here.
+monster_level: x - By default, monsters will be the same level as the maze.  Provide a different level here.

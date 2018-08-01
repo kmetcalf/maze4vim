@@ -1,0 +1,18 @@
+Riddles
+When a player steps onto a trap, the system presents a riddle to the user.  If the user does not answer correctly, they cannot escape the trap.
+
+Filenames:
+All riddles are stored in the "riddles/" folder.  The file naming convention tells you what maze level these riddles are associated with.
+
+e.g., "riddles/level1" may be used in maze levels 1 and above.
+
+File Format:
+Riddle files consist of an even number of lines.  Each pair of lines is a question and answer pair.
+
+e.g.:
+q: Which key lets you navigate left in the maze?
+a: h
+q: Which key lets you navigate right in the maze?
+a: l
+
+In this example, we have two questions.  Note the question begins with q: and the answer begins with a:.  You can add your own questions by just updating these files.
