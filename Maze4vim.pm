@@ -2,8 +2,13 @@ package Maze4vim;
 use warnings;
 use strict;
 
-our $debug = 0;
-my $config_file = "~/.maze4vim.conf";
+our $debug =	0;
+our $level =	0;
+our $name =	"";
+our $traps =	1;
+our $monsters = 1;
+
+my $config_file = "$ENV{HOME}/.maze4vim.conf";
 
 
 sub set_debug {
@@ -40,16 +45,29 @@ sub load_config {
 	# 1. CREATE CONFIG FILE IF IT DOES NOT ALREADY EXIST.
 	if (! -e $config_file) {
 		if ($debug) { print "Config file not found at [$config_file].  Will attempt to create it... "; }
-		
+		my $default_config = "level=$level\nname=$name\ntraps=$traps\nmonsters=$monsters\n";
 
-		print "THIS FEATURE IS NOT YET READY.\n";
+		open(my $fh, '>', $config_file) or die "Could not open file $config_file: $!\n\n";
+		print $fh $default_config or die "Could not write to $config_file: $!\n\n";
+		close $fh;
 	}
 	# 2. READ DATA FROM CONFIG FILE.
 	else {
 		if ($debug) { print "Reading data from [$config_file]... "; }
 
+		local $/;
+		open(my $fh, '<', $config_file) or die "Could not open file $config_file: $!\n\n";
+		my $config_data = <$fh>;
+		close $fh;
 
-		print "THIS FEATURE IS NOT YET READY.\n";
+print "Read file: $config_data\n";
+
+		if ($config_data =~ /^level=(.+?)$/mi)		{ $level = $1; }
+		if ($config_data =~ /^name=(.+?)$/mi)		{ $name = $1; }
+		if ($config_data =~ /^traps=(.+?)$/mi)		{ $traps = $1; }
+		if ($config_data =~ /^monsters=(.+?)$/mi)	{ $monsters = $1; }
+		if ($debug) { print "Success.\nRead: Level: $level, Name: $name, Traps: $traps, Monsters: $monsters\n"; }
+
 	}
 	# 3. VALIDATE DATA
 	if ($debug) { print "Validating configuration data... "; }
