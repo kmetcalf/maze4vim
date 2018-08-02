@@ -1,12 +1,15 @@
 package Maze4vim;
 use warnings;
 use strict;
+use File::Basename;
 
 our $debug =	0;
 our $level =	0;
 our $name =	"";
 our $traps =	1;
 our $monsters = 1;
+
+our $data_dir = dirname (__FILE__);
 
 my $config_file = "$ENV{HOME}/.maze4vim.conf";
 
@@ -60,8 +63,6 @@ sub load_config {
 		my $config_data = <$fh>;
 		close $fh;
 
-print "Read file: $config_data\n";
-
 		if ($config_data =~ /^level=(.+?)$/mi)		{ $level = $1; }
 		if ($config_data =~ /^name=(.+?)$/mi)		{ $name = $1; }
 		if ($config_data =~ /^traps=(.+?)$/mi)		{ $traps = $1; }
@@ -69,16 +70,37 @@ print "Read file: $config_data\n";
 		if ($debug) { print "Success.\nRead: Level: $level, Name: $name, Traps: $traps, Monsters: $monsters\n"; }
 
 	}
+
 	# 3. VALIDATE DATA
 	if ($debug) { print "Validating configuration data... "; }
+	unless ($level >= 0) { die "Level from config file must be a number.\n\n"; }
+	unless (($traps == 0) or ($traps == 1)) { die "Traps from config file must be either 0 or 1.\n\n"; }
+	unless (($monsters == 0) or ($monsters == 1)) { die "Monsters from config file must be either 0 or 1.\n\n"; }
 
-
-
-	print "THIS FEATURE IS NOT YET READY.\n";
-	return 0;
+	return 1;
 }
 
 
+sub load_maze() {
+	my $level_filename = $data_dir . '/mazes/level' . $level;
+	unless (-e $level_filename) { die "Could not find file at [$level_filename].\n\n"; }
+	local $/;
+	open(my $fh, '<', $level_filename) or die "Could not open file $level_filename: $!\n\n";
+	my $level_data = <$fh>;
+	close $fh;
+
+	$level_data =~ s/^\s*start\s*[:=]\s*(.+?)\s*$//mi;
+	my $start_location = $1;
+	if ($debug) { print "Starting at $start_location.\n"; }
+
+	$level_data =~ s/^\s*end\s*[:=]\s*(.+?)\s*$//mi;
+	my $end_location = $1;
+	if ($debug) { print "Ending at $end_location.\n"; }
+
+
+print "Remaining maze data looks like:\n---\n$level_data---\n";
+	return 0;
+}
 
 
 
