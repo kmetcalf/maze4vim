@@ -19,6 +19,7 @@ GetOptions (
 ) or show_help("Error processing command line arguments.\n");
 if ($help == 1) { Maze4vim::show_help(); }
 if ($debug == 1) { Maze4vim::set_debug(1); }
+if ($level != 0) { Maze4vim::set_level($level); }
 
 # READ CONFIGURATION DATA FOR THIS USER ACCOUNT.
 if ($debug) { print "Loading configuration data... "; }
