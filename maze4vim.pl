@@ -9,7 +9,7 @@ use Maze4vim;
 # SET DEFAULTS FOR COMMAND LINE OPTIONS.
 my $help = 0;
 my $debug = 0;
-my $level = 1;
+my $level = 'q';
 
 # READ AND SET COMMAND LINE OPTIONS.
 GetOptions (
@@ -19,7 +19,7 @@ GetOptions (
 ) or show_help("Error processing command line arguments.\n");
 if ($help == 1) { Maze4vim::show_help(); }
 if ($debug == 1) { Maze4vim::set_debug(1); }
-if ($level != 0) { Maze4vim::set_level($level); }
+if ($level ne 'q') { Maze4vim::set_level($level); }
 
 # READ CONFIGURATION DATA FOR THIS USER ACCOUNT.
 if ($debug) { print "Loading configuration data... "; }
@@ -32,4 +32,3 @@ if (Maze4vim::load_maze()) { if ($debug) { print "Success.\n"; } }
 else { die "Error.\n\nCould not load maze data: $!\n"; }
 
 print "Building the maze...\n";
-

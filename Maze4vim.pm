@@ -2,6 +2,7 @@ package Maze4vim;
 use warnings;
 use strict;
 use File::Basename;
+use utf8;
 
 our $debug = 0;
 our $level = 0;
@@ -10,11 +11,19 @@ our $traps = 1;
 our $monsters = 1;
 our @maze_array;
 our @display_maze_array;
+our $start_row	= 0;
+our $start_col	= 0;
+our $end_row	= 0;
+our $end_col	= 0;
+our $open = " ";
+our $closed = "\N{U+2591}";
+our $player = "\N{U+263a}";
 
 our $data_dir = dirname (__FILE__);
-
 my $config_file = "$ENV{HOME}/.maze4vim.conf";
 
+our $cur_row = 0;
+our $cur_col = 0;
 
 sub set_debug {
 	$debug = shift || 0;
@@ -100,12 +109,14 @@ sub load_maze() {
 	# IDENTIFY THE STARTING POINT FOR THE MAZE
 	$level_data =~ s/^\s*start\s*[:=]\s*(.+?)\s*$//mi;
 	my $start_location = $1;
-	if ($debug) { print "Starting at $start_location.\n"; }
+	($start_row, $start_col) = split(/,/, $start_location);
+	if ($debug) { print "Starting at R: $start_row, C: $start_col.\n"; }
 
 	# IDENTIFY THE ENDING POINT OF THE MAZE
 	$level_data =~ s/^\s*end\s*[:=]\s*(.+?)\s*$//mi;
 	my $end_location = $1;
-	if ($debug) { print "Ending at $end_location.\n"; }
+	($end_row, $end_col) = split(/,/, $end_location);
+	if ($debug) { print "Ending at R: $end_row, C: $end_col.\n"; }
 
 	# THE REMAINING DATA WILL MAKE UP THE MAZE ARRAY
 	my @maze_lines = split(/\n/, $level_data);
@@ -116,40 +127,10 @@ sub load_maze() {
 		$row_num++;
 	}
 
-	# BUILD DISPLAY MAZE
-	for (my $row = 0; $row < get_num_rows(); $row++) {
-		for (my $col = 0; $col < get_num_cols(); $col++) {
-			my $key = $maze_array[$row][$col];
-			if ($key =~ /[1]/) {
-				for (my $i=0; $i<3; $i++) {
-					for (my $j=0; $j<3; $j++) {
-						$display_maze_array[($row*3)+$i][($col*3)+$j] = '1';
-					}
-				}
-			}
-			elsif ($key =~ /[0tm]/) {
-				for (my $i=0; $i<3; $i++) {
-					for (my $j=0; $j<3; $j++) {
-						$display_maze_array[($row*3)+$i][($col*3)+$j] = '0';
-					}
-				}
-			}
+	$cur_row = $start_row;
+	$cur_col = $start_col;
 
-# print $maze_array[$row][$col];
-
-		}
-		print "\n";
-	}
-
-
-
-	for (my $row = 0; $row < get_num_rows()*3; $row++) {
-		for (my $col = 0; $col < get_num_cols()*3; $col++) {
-			print $display_maze_array[$row][$col];
-		}
-		print "\n";
-	}
-	
+	build_display_maze();	
 	return 1;
 }
 
@@ -161,10 +142,71 @@ sub get_num_rows {
 sub get_num_cols {
 	my $first_row_ref = $maze_array[0];
 	my @first_row = @$first_row_ref;
-
-#print "1st row: " . join(',', @first_row) . "\n";
-
 	return scalar @first_row;
+}
+
+# BUILD DISPLAY MAZE
+sub build_display_maze {
+binmode STDOUT, ':utf8';
+
+	my $up =   0;
+	my $down = 0;
+	my $left = 0;
+	my $right =0;
+	for (my $row = 0; $row < get_num_rows(); $row++) {
+		for (my $col = 0; $col < get_num_cols(); $col++) {
+			# BEGIN BY CLOSING THE WHOLE DISPLAY PIECE:
+			my @display_piece;
+			for (my $i=0; $i<3; $i++) { for (my $j=0; $j<3; $j++) { $display_piece[$i][$j] = $closed } }
+
+			# IF THIS PIECE HAS A PASSAGE, ALWAYS OPEN THE MIDDLE PIECE
+			if ($maze_array[$row][$col] == 1) { $display_piece[1][1] = $open; }
+
+if (($row == $cur_row) && ($col == $cur_col)) { $display_piece[1][1] = $player; }
+
+			# IF THE PIECE IS *NOT* AT THE TOP EDGE, OPEN ROW0, COL1 IF THE PIECE ABOVE ISN'T CLOSED
+			if (($maze_array[$row][$col] == 1) && ($row != 0) && ($maze_array[$row-1][$col] != 0)) { $display_piece[0][1] = $open; }
+
+			# IF THE PIECE IS *NOT* AT THE BOTTOM EDGE, OPEN ROW2, COL1 IF THE PIECE BELOW ISN'T CLOSED
+			if (($maze_array[$row][$col] == 1) && ($row != get_num_rows()-1) && ($maze_array[$row+1][$col] != 0)) { $display_piece[2][1] = $open; }
+
+			# IF THE PIECE IS *NOT* AT THE LEFT EDGE, OPEN ROW1, COL0 IF THE PIECE TO THE LEFT ISN'T CLOSED
+			if (($maze_array[$row][$col] == 1) && ($col != 0) && ($maze_array[$row][$col-1] != 0)) { $display_piece[1][0] = $open; }
+
+			# IF THE PIECE IS *NOT* AT THE RIGHT EDGE, OPEN ROW1, COL2 IF THE PIECE TO THE RIGHT ISN'T CLOSED
+			if (($maze_array[$row][$col] == 1) && ($col != get_num_cols()-1) && ($maze_array[$row][$col+1] != 0)) { $display_piece[1][2] = $open; }
+
+			# ACCOUNT FOR START AND END POSITIONS ALLOWING PASSAGE THROUGH THE OUTER WALLS
+			if (($row == $start_row) && ($col == $start_col)) {
+				if ($row == 0) { $display_piece[0][1] = $open; }
+				if ($row == get_num_rows()-1) { $display_piece[2][1] = $open; }
+				if ($col == 0) { $display_piece[1][0] = $open; }
+				if ($col == get_num_cols()-1) { $display_piece[1][2] = $open; }
+			}
+			if (($row == $end_row) && ($col == $end_col)) {
+				if ($row == 0) { $display_piece[0][1] = $open; }
+				if ($row == get_num_rows()-1) { $display_piece[2][1] = $open; }
+				if ($col == 0) { $display_piece[1][0] = $open; }
+				if ($col == get_num_cols()-1) { $display_piece[1][2] = $open; }
+			}
+
+
+			for (my $i=0; $i<3; $i++) {
+				for (my $j=0; $j<3; $j++) {
+					$display_maze_array[($row*3)+$i][($col*3)+$j] = $display_piece[$i][$j];
+				}
+			}
+		}
+	}
+
+
+	# PRINT THE DISPLAY MAZE
+	for (my $row = 0; $row < get_num_rows()*3; $row++) {
+		for (my $col = 0; $col < get_num_cols()*3; $col++) {
+			print $display_maze_array[$row][$col];
+		}
+		print "\n";
+	}
 }
 
 1;
